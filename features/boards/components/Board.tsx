@@ -49,6 +49,11 @@ export default function Board() {
     addMember,
     updateMemberRole,
     removeMember,
+    comments,
+    fetchComments,
+    addComment,
+    editComment,
+    deleteComment,
   } = useBoard(id);
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -413,6 +418,11 @@ export default function Board() {
         onSubmit={handleUpdateTaskExecute}
         task={activeTask}
         members={members}
+        comments={activeTask ? comments[activeTask.id] || [] : []}
+        onFetchComments={fetchComments}
+        onAddComment={addComment}
+        onEditComment={editComment}
+        onDeleteComment={deleteComment}
       />
 
       <CreateColumnDialog

@@ -1,4 +1,4 @@
-import { Board, BoardMember, Column, Task } from "./supabase/models";
+import { Board, BoardMember, Column, Task, Comment, ActivityLog } from "./supabase/models";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 export const boardService = {
@@ -343,7 +343,7 @@ export const memberService = {
 };
 
 export const activityService = {
-  async getLogs(supabase: SupabaseClient, taskId: string): Promise<import("./supabase/models").ActivityLog[]> {
+  async getLogs(supabase: SupabaseClient, taskId: string): Promise<ActivityLog[]> {
     const { data, error } = await supabase
       .from("activity_logs")
       .select("*")
@@ -356,11 +356,63 @@ export const activityService = {
 
   async createLog(
     supabase: SupabaseClient,
-    log: Omit<import("./supabase/models").ActivityLog, "id" | "created_at">
+    log: Omit<ActivityLog, "id" | "created_at">
   ) {
     const { data, error } = await supabase
       .from("activity_logs")
       .insert(log)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+};
+
+export const commentService = {
+  async getComments(supabase: SupabaseClient, taskId: string): Promise<Comment[]> {
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("task_id", taskId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createComment(
+    supabase: SupabaseClient,
+    comment: Omit<Comment, "id" | "created_at">
+  ): Promise<Comment> {
+    const { data, error } = await supabase
+      .from("comments")
+      .insert(comment)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteComment(supabase: SupabaseClient, commentId: string) {
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (error) throw error;
+  },
+
+  async updateComment(
+    supabase: SupabaseClient,
+    commentId: string,
+    content: string
+  ): Promise<Comment> {
+    const { data, error } = await supabase
+      .from("comments")
+      .update({ content })
+      .eq("id", commentId)
       .select()
       .single();
 

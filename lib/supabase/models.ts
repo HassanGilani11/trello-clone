@@ -47,8 +47,17 @@ export interface ActivityLog {
   id: string;
   task_id: string;
   user_id: string;
-  action_type: "move" | "update" | "create" | "delete" | "mention";
+  action_type: "move" | "update" | "create" | "delete" | "mention" | "comment";
   entity_title?: string;
   details?: any;
   created_at: string;
+}
+
+export interface Comment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  user_email?: string; // Optional for UI display
 }

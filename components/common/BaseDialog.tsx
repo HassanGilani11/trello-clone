@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils"; // Assuming cn is available for tailwind-merge
 
 interface BaseDialogProps {
   isOpen: boolean;
@@ -23,11 +24,11 @@ export function BaseDialog({
   title,
   description,
   children,
-  className = "w-[95vw] max-w-[425px] mx-auto",
+  className,
 }: BaseDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className={className}>
+      <DialogContent className={cn("w-[95vw] max-w-[425px] mx-auto", className)}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && (

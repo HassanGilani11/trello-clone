@@ -23,7 +23,7 @@ export function ActivityLogList({ logs }: ActivityLogProps) {
                 <Activity className="h-4 w-4" />
                 Activity
             </h3>
-            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+            <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2">
                 {logs.map((log) => (
                     <div key={log.id} className="flex gap-3 text-sm">
                         <div className="mt-0.5">

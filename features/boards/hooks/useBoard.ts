@@ -7,8 +7,9 @@ import {
   memberService,
   taskService,
   activityService,
+  commentService,
 } from "@/lib/services";
-import { Board, BoardMember, ColumnWithTasks, Task } from "@/lib/supabase/models";
+import { Board, BoardMember, ColumnWithTasks, Task, Comment } from "@/lib/supabase/models";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
@@ -21,6 +22,7 @@ export function useBoard(boardId: string) {
   const [board, setBoard] = useState<Board | null>(null);
   const [columns, setColumns] = useState<ColumnWithTasks[]>([]);
   const [members, setMembers] = useState<BoardMember[]>([]);
+  const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +34,7 @@ export function useBoard(boardId: string) {
 
   async function logActivity(
     taskId: string,
-    actionType: "move" | "update" | "create" | "delete" | "mention",
+    actionType: "move" | "update" | "create" | "delete" | "mention" | "comment",
     details: any = {}
   ) {
     if (!user || !supabase) return;
@@ -388,10 +390,80 @@ export function useBoard(boardId: string) {
     }
   }
 
+  async function fetchComments(taskId: string) {
+    if (!supabase) return;
+    try {
+      const data = await commentService.getComments(supabase, taskId);
+      setComments(prev => ({ ...prev, [taskId]: data }));
+    } catch (err) {
+      console.error("Failed to fetch comments", err);
+    }
+  }
+
+  async function addComment(taskId: string, content: string) {
+    if (!supabase || !user) return;
+    try {
+      const newComment = await commentService.createComment(supabase, {
+        task_id: taskId,
+        user_id: user.id,
+        user_email: user.primaryEmailAddress?.emailAddress || "Anonymous",
+        content: content,
+      });
+
+      // Add user email for immediate UI display
+      const commentWithEmail = {
+        ...newComment,
+        user_email: user.primaryEmailAddress?.emailAddress || "Me"
+      };
+
+      setComments(prev => ({
+        ...prev,
+        [taskId]: [...(prev[taskId] || []), commentWithEmail]
+      }));
+
+      logActivity(taskId, "comment", { content: content.substring(0, 50) + (content.length > 50 ? "..." : "") });
+      toast.success("Comment added");
+    } catch (err) {
+      toast.error("Failed to add comment");
+      throw err;
+    }
+  }
+
+  async function editComment(taskId: string, commentId: string, content: string) {
+    if (!supabase) return;
+    try {
+      const updatedComment = await commentService.updateComment(supabase, commentId, content);
+      setComments(prev => ({
+        ...prev,
+        [taskId]: prev[taskId].map(c => c.id === commentId ? { ...c, content: updatedComment.content } : c)
+      }));
+      toast.success("Comment updated");
+    } catch (err) {
+      toast.error("Failed to update comment");
+      throw err;
+    }
+  }
+
+  async function deleteComment(taskId: string, commentId: string) {
+    if (!supabase) return;
+    try {
+      await commentService.deleteComment(supabase, commentId);
+      setComments(prev => ({
+        ...prev,
+        [taskId]: prev[taskId].filter(c => c.id !== commentId)
+      }));
+      toast.success("Comment deleted");
+    } catch (err) {
+      toast.error("Failed to delete comment");
+      throw err;
+    }
+  }
+
   return {
     board,
     columns,
     members,
+    comments,
     setMembers,
     setColumns,
     loading,
@@ -407,5 +479,9 @@ export function useBoard(boardId: string) {
     addMember,
     updateMemberRole,
     removeMember,
+    fetchComments,
+    addComment,
+    editComment,
+    deleteComment,
   };
-}
+};
