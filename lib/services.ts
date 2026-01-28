@@ -43,7 +43,7 @@ export const boardService = {
           0
         ) || 0;
 
-      const { columns, ...boardWithoutColumns } = board;
+      const { columns: _columns, ...boardWithoutColumns } = board;
       return {
         ...boardWithoutColumns,
         totalTasks,
