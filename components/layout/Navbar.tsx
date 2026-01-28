@@ -1,0 +1,208 @@
+"use client";
+
+import { UserButton, useUser } from "@clerk/nextjs";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Filter,
+  MoreHorizontal,
+  Trello,
+} from "lucide-react";
+import React from "react";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Badge } from "../ui/badge";
+import { cn } from "@/lib/utils";
+
+interface NavbarProps {
+  boardTitle?: string;
+  onEditBoard?: () => void;
+  onFilterClick?: () => void;
+  filterCount?: number;
+  className?: string;
+}
+
+import { ThemeToggle } from "../theme-toggle";
+
+const Navbar = ({
+  boardTitle,
+  onEditBoard,
+  onFilterClick,
+  filterCount,
+  className,
+}: NavbarProps) => {
+  const { isSignedIn, user } = useUser();
+  const pathname = usePathname();
+
+  const isDashboardPage = pathname === "/dashboard";
+  const isBoardPage = pathname.startsWith("/boards/");
+
+  if (isDashboardPage) {
+    return (
+      <header className="border-b bg-white/80 dark:bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
+          <Link href="/">
+            <div className="flex items-center space-x-2">
+              <Trello className="h-6 w-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-500" />
+              <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {" "}
+                Trello Clone
+              </span>
+            </div>
+          </Link>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <ThemeToggle />
+            <UserButton />
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  if (isBoardPage) {
+    return (
+      <header className="bg-white dark:bg-background border-b sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-1 sm:space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 flex-shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4 sm:h-6 sm:w-6" />
+                <span className="hidden sm:inline">Back to dashboard</span>
+                <span className="sm:hidden">Back</span>
+              </Link>
+              <div className="h-4 sm:h-6 w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
+              <div className="hidden sm:flex items-center space-x-1 sm:space-x-2 min-w-0">
+                <Trello className="text-blue-600 dark:text-blue-500" />
+                <div className="items-center space-x-1 sm:space-x-2 min-w-0">
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                    {boardTitle}
+                  </span>
+                  {onEditBoard && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 flex-shrink-0 p-0 cursor-pointer"
+                      onClick={onEditBoard}
+                    >
+                      <MoreHorizontal />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+              {onFilterClick && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onFilterClick}
+                  className={`text-xs sm:text-sm cursor-pointer ${filterCount && filterCount > 0
+                    ? "bg-blue-100 border-blue-200 dark:bg-blue-900/50 dark:border-blue-800"
+                    : ""
+                    }`}
+                >
+                  <Filter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Filter</span>
+                  {filterCount && filterCount > 0 && (
+                    <Badge
+                      variant={"secondary"}
+                      className="text-xs ml-1 sm:ml-2 bg-blue-100 border-blue-200 dark:bg-blue-900 dark:border-blue-800"
+                    >
+                      {filterCount}
+                    </Badge>
+                  )}
+                </Button>
+              )}
+              <ThemeToggle />
+              <UserButton />
+            </div>
+          </div>
+          <div className="flex sm:hidden mt-4 justify-center items-center space-x-1 sm:space-x-2 min-w-0">
+            <Trello className="text-blue-600 dark:text-blue-500" />
+            <div className="items-center space-x-1 sm:space-x-2 min-w-0">
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                {boardTitle}
+              </span>
+              {onEditBoard && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 flex-shrink-0 p-0 cursor-pointer"
+                  onClick={onEditBoard}
+                >
+                  <MoreHorizontal />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  return (
+    <header
+      className={cn(
+        "border-b bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm sticky top-0 z-50",
+        className
+      )}
+    >
+      <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
+        <Link href="/">
+          <div className="flex items-center space-x-2 cursor-pointer">
+            <Trello className="h-6 w-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-500" />
+            <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {" "}
+              Trello Clone
+            </span>
+          </div>
+        </Link>
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <ThemeToggle />
+          <div>
+            {isSignedIn ? (
+              <div className="flex flex-col sm:flex-row items-end sm:items-center space-y-1 sm:space-y-0 sm:space-x-4">
+                <span className="hidden sm:block text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  Welcome,{" "}
+                  {user?.firstName ?? user?.emailAddresses[0].emailAddress}
+                </span>
+                <Link href="/dashboard">
+                  <Button size="sm" className="text-xs sm:text-sm cursor-pointer">
+                    Go to Dashboard <ArrowRight />
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link href="/sign-in">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs sm:text-sm cursor-pointer"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/sign-up">
+                  <Button
+                    size="sm"
+                    className="text-xs sm:text-sm cursor-pointer"
+                  >
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Navbar;
