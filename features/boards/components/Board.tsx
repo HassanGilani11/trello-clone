@@ -29,6 +29,10 @@ import { DeleteColumnDialog } from "./DeleteColumnDialog";
 import { useBoard } from "../hooks/useBoard";
 import { EditTaskDialog } from "./EditTaskDialog";
 import { BoardMembersDialog } from "./BoardMembersDialog";
+import { Button } from "@/components/ui/button";
+import { Bot } from "lucide-react";
+import { AIChatPanel } from "../../ai/components/AIChatPanel";
+import { ActivityLogList } from "./ActivityLogList";
 
 export default function Board() {
   const { id } = useParams<{ id: string }>();
@@ -82,6 +86,8 @@ export default function Board() {
     assignee: [] as string[],
     dueDate: null as string | null,
   });
+
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -466,6 +472,42 @@ export default function Board() {
         onRemoveMember={removeMember}
         onUpdateRole={updateMemberRole}
       />
+
+      {/* Floating AI Assistant Trigger */}
+      {board && (
+        <>
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl bg-blue-600 hover:bg-blue-700 text-white border-none group transition-all duration-300 hover:scale-110 z-50 overflow-hidden"
+            onClick={() => setIsAIChatOpen(true)}
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Bot className="w-6 h-6" />
+            <div className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            </div>
+          </Button>
+
+          {/* AI Assistant Panel */}
+          <AIChatPanel
+            isOpen={isAIChatOpen}
+            onOpenChange={setIsAIChatOpen}
+            boardContext={{
+              boardName: board.title,
+              columns: columns.map(c => ({ title: c.title, id: c.id })),
+              tasks: columns.flatMap(c =>
+                c.tasks.map(t => ({
+                  content: t.title,
+                  column_title: c.title,
+                  id: t.id
+                }))
+              )
+            }}
+          />
+        </>
+      )}
     </>
   );
 }

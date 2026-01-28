@@ -1,17 +1,19 @@
-"use Client";
+"use client";
 
 import { HeaderSkeleton } from "@/components/skeletons/DashboardHeader";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
-import { Plus } from "lucide-react";
+import { Plus, Folders } from "lucide-react";
 
 interface DashboardHeaderProps {
   onCreateBoard: () => void;
+  onCreateWorkspace: () => void;
   loading: boolean;
 }
 
 export function DashboardHeader({
   onCreateBoard,
+  onCreateWorkspace,
   loading,
 }: DashboardHeaderProps) {
   const { user } = useUser();
@@ -29,13 +31,23 @@ export function DashboardHeader({
       <p className="text-gray-600 dark:text-gray-300">
         Here's what's happening with your boards today.
       </p>
-      <Button
-        className="w-full sm:w-auto mt-2 cursor-pointer"
-        onClick={onCreateBoard}
-      >
-        <Plus className="w-4 h-4 mr-2" />
-        Create Board
-      </Button>
+      <div className="flex flex-col sm:flex-row gap-2 mt-2">
+        <Button
+          className="w-full sm:w-auto cursor-pointer"
+          onClick={onCreateBoard}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Board
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto cursor-pointer"
+          onClick={onCreateWorkspace}
+        >
+          <Folders className="w-4 h-4 mr-2" />
+          Create Workspace
+        </Button>
+      </div>
     </div>
   );
 }

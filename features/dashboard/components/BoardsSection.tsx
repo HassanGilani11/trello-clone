@@ -20,12 +20,14 @@ interface BoardsSectionProps {
   loading: boolean;
   viewMode: "grid" | "list";
   onViewModeChange: (mode: "grid" | "list") => void;
-  onFilterClick: () => void;
+  onFilterClick?: () => void;
   onCreateBoard: () => void;
   activeFilterCount: number;
   isFreeUser: boolean;
   onSearchChange: (value: string) => void;
   searchValue: string;
+  showHeader?: boolean;
+  emptyMessage?: string;
 }
 
 export function BoardsSection({
@@ -39,77 +41,95 @@ export function BoardsSection({
   isFreeUser,
   onSearchChange,
   searchValue,
+  showHeader = true,
+  emptyMessage = "No boards yet",
 }: BoardsSectionProps) {
   if (loading) {
     return <BoardsSkeleton />;
   }
   return (
     <div className="mb-6 sm:mb-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Your Boards
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">Manage your projects and tasks</p>
-          {isFreeUser && (
-            <p className="text-sm text-gray-500 mt-1">
-              Free Plan: {boards.length}/1 boards used
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-x-0 sm:space-x-2 space-y-2 sm:space-y-0">
-          <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 border dark:border-gray-700 p-1 rounded-md">
-            <Button
-              variant={viewMode === "grid" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("grid")}
-              className="cursor-pointer"
-            >
-              <Grid3X3 />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("list")}
-              className="cursor-pointer"
-            >
-              <List />
-            </Button>
+      {showHeader && (
+        <>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Your Boards
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">Manage your projects and tasks</p>
+              {isFreeUser && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Free Plan: {boards.length}/1 boards used
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-x-0 sm:space-x-2 space-y-2 sm:space-y-0">
+              <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 border dark:border-gray-700 p-1 rounded-md">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => onViewModeChange("grid")}
+                  className="cursor-pointer"
+                >
+                  <Grid3X3 />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => onViewModeChange("list")}
+                  className="cursor-pointer"
+                >
+                  <List />
+                </Button>
+              </div>
+              <Button
+                variant="outline"
+                size="lg"
+                className="py-5 cursor-pointer"
+                onClick={onFilterClick}
+              >
+                <Filter />
+                Filter
+                {activeFilterCount > 0 && (
+                  <Badge variant={"outline"}>{activeFilterCount}</Badge>
+                )}
+              </Button>
+              <Button onClick={onCreateBoard} className="py-5 cursor-pointer" id="create-board-btn">
+                <Plus />
+                Create Board
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="lg"
-            className="py-5 cursor-pointer"
-            onClick={onFilterClick}
-          >
-            <Filter />
-            Filter
-            {activeFilterCount > 0 && (
-              <Badge variant={"outline"}>{activeFilterCount}</Badge>
-            )}
-          </Button>
-          <Button onClick={onCreateBoard} className="py-5 cursor-pointer">
-            <Plus />
-            Create Board
-          </Button>
-        </div>
-      </div>
 
-      {/* Search Boards */}
-      <div className="relative mb-4 sm:mb-6">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
-          id="search"
-          placeholder="Search Boards..."
-          className="pl-10"
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
+          <div className="relative mb-4 sm:mb-6">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              id="search"
+              placeholder="Search Boards..."
+              className="pl-10"
+              value={searchValue}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
+        </>
+      )}
 
       {/* Boards Grids/List */}
       {boards.length === 0 ? (
-        <div>No boards yet</div>
+        <div className="py-12 flex flex-col items-center justify-center bg-gray-50/50 dark:bg-gray-800/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-800">
+          <p className="text-gray-500 dark:text-gray-400 italic">{emptyMessage}</p>
+          {!showHeader && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={onCreateBoard}
+              className="mt-2 text-blue-600 dark:text-blue-400"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Create board in this workspace
+            </Button>
+          )}
+        </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {boards.map((board, key) => (

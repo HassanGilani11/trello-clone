@@ -1,5 +1,24 @@
+export interface Workspace {
+  id: string;
+  name: string;
+  slug: string | null;
+  owner_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkspaceMember {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  email: string;
+  role: "admin" | "member";
+  created_at: string;
+}
+
 export interface Board {
   id: string;
+  workspace_id: string | null;
   title: string;
   description: string | null;
   color: string;

@@ -40,6 +40,7 @@ export function useBoards() {
     title: string;
     description?: string;
     color?: string;
+    workspaceId?: string;
   }) {
     if (!user) throw new Error("User not authenticated");
 

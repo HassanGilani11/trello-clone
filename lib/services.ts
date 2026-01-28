@@ -1,5 +1,63 @@
-import { Board, BoardMember, Column, Task, Comment, ActivityLog } from "./supabase/models";
+import { Board, BoardMember, Column, Task, Comment, ActivityLog, Workspace, WorkspaceMember } from "./supabase/models";
 import { SupabaseClient } from "@supabase/supabase-js";
+
+export const workspaceService = {
+  async getWorkspaces(supabase: SupabaseClient, userId: string): Promise<Workspace[]> {
+    const { data, error } = await supabase
+      .from("workspaces")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getWorkspace(supabase: SupabaseClient, workspaceId: string): Promise<Workspace> {
+    const { data, error } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("id", workspaceId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async createWorkspace(
+    supabase: SupabaseClient,
+    workspace: Omit<Workspace, "id" | "created_at" | "updated_at">,
+    userEmail: string
+  ): Promise<Workspace> {
+    const { data, error } = await supabase
+      .from("workspaces")
+      .insert(workspace)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Add owner as admin member
+    await supabase.from("workspace_members").insert({
+      workspace_id: data.id,
+      user_id: workspace.owner_id,
+      email: userEmail,
+      role: "admin",
+    });
+
+    return data;
+  },
+
+  async getWorkspaceBoards(supabase: SupabaseClient, workspaceId: string): Promise<Board[]> {
+    const { data, error } = await supabase
+      .from("boards")
+      .select("*")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+};
 
 export const boardService = {
   async getBoard(supabase: SupabaseClient, boardId: string): Promise<Board> {
@@ -249,6 +307,7 @@ export const boardDataService = {
       color?: string;
       userId: string;
       userEmail: string;
+      workspaceId?: string;
     }
   ) {
     const board = await boardService.createBoard(supabase, {
@@ -256,6 +315,7 @@ export const boardDataService = {
       description: boardData.description || null,
       color: boardData.color || "bg-blue-500",
       user_id: boardData.userId,
+      workspace_id: boardData.workspaceId || null,
     });
 
     const defaultColumns = [

@@ -10,21 +10,25 @@ A premium, full-stack project management application inspired by Trello. Built w
 - **Drag & Drop**: Seamlessly move tasks between columns and reorder columns with smooth, intuitive animations powered by `@dnd-kit`.
 - **Dynamic Columns**: Fully customizable workflow columns (To Do, In Progress, Done, etc.).
 
-### 🔒 Security & Collaboration
+### 💬 Collaboration & Intelligence
+- **Collaborative Comments**: Threaded task discussions with full CRUD support.
 - **Member Management**: Invite other users to your board via email.
 - **Role-Based Access (RBAC)**: Fine-grained permissions for Board Owners, Admins, and Members.
-- **Database-Level Protection**: Secure PostgreSQL Row Level Security (RLS) ensuring total data isolation between users.
-- **Authentication**: Enterprise-grade security with Clerk (Google, GitHub, and Email login).
-
-### 📈 Activity Tracking
-- **Audit Logs**: Complete history of task changes, moves, and mentions.
-- **Real-time Feed**: See exactly who changed what and when.
+- **Activity Tracking**: Complete history of task changes, moves, and comments in a dedicated audit feed.
 
 ### 🎨 Visuals & UX
+- **Full-Width Workspace**: Expansive dialog layout for focused task management and commenting.
 - **Stunning Dark Mode**: Elegant, eye-friendly interface with automatic theme detection.
 - **Premium Aesthetics**: Built with Shadcn/UI and Lucide icons for a professional look and feel.
 - **Responsive Design**: Flawless experience across Mobile, Tablet, and Desktop.
-- **Advanced Filters**: Find tasks instantly by priority, assignee, or date.
+
+---
+
+## 🗺️ Roadmap (Upcoming Features)
+
+- [ ] **Workspaces**: Organize multiple boards into collaborative team workspace environments.
+- [ ] **AI Project Assistant**: An intelligent assistant capable of providing project insights, task summaries, and automated updates based on your board's data.
+- [ ] **Advanced Analytics**: Visualized performance metrics for teams and tasks.
 
 ---
 
@@ -37,7 +41,6 @@ A premium, full-stack project management application inspired by Trello. Built w
 - **Database**: [Supabase (PostgreSQL)](https://supabase.com/)
 - **Authentication**: [Clerk](https://clerk.com/)
 - **Drag & Drop**: [@dnd-kit](https://dndkit.com/)
-- **State Management**: React Hooks & Context API
 
 ---
 
@@ -77,7 +80,7 @@ A premium, full-stack project management application inspired by Trello. Built w
    ```
 
 4. **Initialize Database:**
-   Run the SQL provided in `schema.sql` and the migration files in `supabase/migrations/` within your Supabase SQL Editor.
+   Run the SQL provided in `schema.sql` and ALL migration files in `supabase/migrations/` (including `comments.sql`) within your Supabase SQL Editor.
 
 5. **Run the development server:**
    ```bash
