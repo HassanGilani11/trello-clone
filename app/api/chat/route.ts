@@ -1,7 +1,18 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { taskService } from "@/lib/services";
+
+const FALLBACK_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-001",
+    "gemini-flash-latest",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash-lite-001",
+    "gemini-exp-1206"
+];
 
 export async function POST(req: NextRequest) {
     try {
@@ -9,7 +20,7 @@ export async function POST(req: NextRequest) {
         const apiKey = process.env.GOOGLE_AI_API_KEY;
 
         if (!apiKey) {
-            console.error("AI API Key is missing in environment variables");
+            console.error("AI API Key is missing");
             return NextResponse.json({ error: "AI API Key not configured" }, { status: 500 });
         }
 
@@ -50,11 +61,6 @@ export async function POST(req: NextRequest) {
             },
         ];
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
-            tools: tools as any
-        });
-
         const systemPrompt = `
       You are "Antigravity", a premium, powerful agentic AI project management assistant.
       Your goal is to help users manage their Trello-style boards, optimize their workflows, and provide intelligent insights.
@@ -91,6 +97,8 @@ export async function POST(req: NextRequest) {
       - FIRST: If they haven't confirmed, use the "Action Detected" format below.
       - SECOND: If they have confirmed (e.g., "Yes", "Go ahead"), use the provided tools (update_task, move_task) to persist changes.
       - DO NOT just pretend to execute. Use the tool.
+      
+      **IMPORTANT: DO NOT use tools for SUMMARIES, ANALYSES, or QUESTIONS. Only use tools for modifications.**
 
       Action Detected Format (Pre-Confirmation):
       Action Detected:
@@ -116,69 +124,92 @@ export async function POST(req: NextRequest) {
             })),
         ];
 
-        const chat = model.startChat({
-            history: chatHistory,
-        });
+        let lastError = null;
 
-        const result = await chat.sendMessage(message);
-        let response = result.response;
-        let iterations = 0;
-        let actionExecuted = false;
+        // --- MODEL FALLBACK LOOP ---
+        for (const modelName of FALLBACK_MODELS) {
+            try {
+                // console.log(`Attempting generation with model: ${modelName}`); 
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    tools: tools as any
+                });
 
-        // Handle Tool Calls
-        while (response.candidates?.[0]?.content?.parts?.some((p: any) => p.functionCall) && iterations < 5) {
-            const toolCalls = response.candidates[0].content.parts.filter((p: any) => p.functionCall);
-            const toolResponses = [];
+                const chat = model.startChat({
+                    history: chatHistory,
+                });
 
-            for (const call of toolCalls) {
-                const functionCall = (call as any).functionCall;
-                const { name, args } = functionCall;
-                console.log(`AI Tool Call: ${name}`, args);
+                const result = await chat.sendMessage(message);
+                let response = result.response;
+                let iterations = 0;
+                let actionExecuted = false;
 
-                let output;
-                try {
-                    if (name === "update_task") {
-                        const updateArgs = args as any;
-                        output = await taskService.updateTask(supabase, updateArgs.taskId, {
-                            priority: updateArgs.priority as any,
-                            assignee: updateArgs.assignee,
-                            due_date: updateArgs.dueDate
-                        });
-                        actionExecuted = true;
-                    } else if (name === "move_task") {
-                        const moveArgs = args as any;
-                        output = await taskService.moveTask(supabase, moveArgs.taskId, moveArgs.columnId, 0);
-                        actionExecuted = true;
+                // Handle Tool Calls
+                while (response.candidates?.[0]?.content?.parts?.some((p: any) => p.functionCall) && iterations < 5) {
+                    const toolCalls = response.candidates[0].content.parts.filter((p: any) => p.functionCall);
+                    const toolResponses = [];
+
+                    for (const call of toolCalls) {
+                        const functionCall = (call as any).functionCall;
+                        const { name, args } = functionCall;
+                        console.log(`AI Tool Call (${modelName}): ${name}`, args);
+
+                        let output;
+                        try {
+                            if (name === "update_task") {
+                                const updateArgs = args as any;
+                                output = await taskService.updateTask(supabase, updateArgs.taskId, {
+                                    priority: updateArgs.priority as any,
+                                    assignee: updateArgs.assignee,
+                                    due_date: updateArgs.dueDate
+                                });
+                                actionExecuted = true;
+                            } else if (name === "move_task") {
+                                const moveArgs = args as any;
+                                output = await taskService.moveTask(supabase, moveArgs.taskId, moveArgs.columnId, 0);
+                                actionExecuted = true;
+                            }
+                            toolResponses.push({
+                                functionResponse: {
+                                    name,
+                                    response: { content: output, status: "success" }
+                                }
+                            });
+                        } catch (e: any) {
+                            console.error(`Tool Execution Error (${name}):`, e);
+                            toolResponses.push({
+                                functionResponse: {
+                                    name,
+                                    response: { error: e.message, status: "error" }
+                                }
+                            });
+                        }
                     }
-                    toolResponses.push({
-                        functionResponse: {
-                            name,
-                            response: { content: output, status: "success" }
-                        }
-                    });
-                } catch (e: any) {
-                    console.error(`Tool Execution Error (${name}):`, e);
-                    toolResponses.push({
-                        functionResponse: {
-                            name,
-                            response: { error: e.message, status: "error" }
-                        }
-                    });
-                }
-            }
 
-            const nextResult = await chat.sendMessage(toolResponses);
-            response = nextResult.response;
-            iterations++;
+                    const nextResult = await chat.sendMessage(toolResponses);
+                    response = nextResult.response;
+                    iterations++;
+                }
+
+                const responseText = response.text();
+                // If we get here, success! Return immediately.
+                return NextResponse.json({ text: responseText, actionExecuted, usedModel: modelName });
+
+            } catch (error: any) {
+                console.warn(`Model ${modelName} failed:`, error.message);
+                lastError = error;
+                // If it's a 429 (Rate Limit) or 503 (Overloaded), continue to next model.
+                // Otherwise (e.g. invalid API key), maybe we should stop?
+                // For now, we try all fallbacks.
+                continue;
+            }
         }
 
-        const responseText = response.text();
-        return NextResponse.json({ text: responseText, actionExecuted });
+        // If loop finishes without returning, throw the last error
+        throw lastError || new Error("All fallback models failed.");
 
     } catch (error: any) {
-        console.error("AI Chat Error Details:", error);
-        const status = error.status || 500;
-        const message = error.message || "Failed to generate AI response";
-        return NextResponse.json({ error: message }, { status });
+        console.error("AI Chat Final Error:", error);
+        return NextResponse.json({ error: error.message || "Failed to generate response" }, { status: 500 });
     }
 }

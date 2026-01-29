@@ -480,3 +480,40 @@ export const commentService = {
     return data;
   },
 };
+
+export const chatService = {
+  async getMessages(supabase: SupabaseClient, boardId: string): Promise<{ role: string, content: string }[]> {
+    const { data, error } = await supabase
+      .from("ai_chat_messages")
+      .select("role, content")
+      .eq("board_id", boardId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async saveMessage(
+    supabase: SupabaseClient,
+    boardId: string,
+    userId: string,
+    role: "user" | "assistant",
+    content: string
+  ) {
+    const { error } = await supabase.from("ai_chat_messages").insert({
+      board_id: boardId,
+      user_id: userId,
+      role,
+      content
+    });
+
+    if (error) {
+      console.error("Failed to save chat message:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+    }
+  }
+};

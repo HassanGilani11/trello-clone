@@ -495,6 +495,7 @@ export default function Board() {
             isOpen={isAIChatOpen}
             onOpenChange={setIsAIChatOpen}
             boardContext={{
+              boardId: board.id,
               boardName: board.title,
               columns: columns.map(c => ({ title: c.title, id: c.id })),
               tasks: columns.flatMap(c =>
@@ -506,7 +507,6 @@ export default function Board() {
                   due_date: t.due_date,
                   priority: t.priority
                 }))
-
               )
             }}
           />

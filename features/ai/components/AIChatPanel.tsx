@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-// Removed Vercel AI SDK imports
-// import { useChat } from "@ai-sdk/react";
-// import { type Message } from "ai";
 import {
     Sheet,
     SheetContent,
@@ -18,11 +15,15 @@ import { Bot, Send, Sparkles, User, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { chatService } from "@/lib/services";
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { useUser } from "@clerk/nextjs";
 
 interface AIChatPanelProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     boardContext: {
+        boardId: string;
         boardName: string;
         columns: Array<{ title: string; id: string }>;
         tasks: Array<{
@@ -33,7 +34,6 @@ interface AIChatPanelProps {
             assignee?: string | null;
             due_date?: string | null;
         }>;
-
     };
     onAction?: () => void;
 }
@@ -48,6 +48,62 @@ export function AIChatPanel({ isOpen, onOpenChange, boardContext, onAction }: AI
     const [inputValue, setInputValue] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Auth & Persistence
+    const { supabase, isLoaded } = useSupabase();
+    const { user } = useUser();
+
+    // Load message from LocalStorage first for instant feel
+    useEffect(() => {
+        if (boardContext.boardId) {
+            const saved = localStorage.getItem(`chat_history_${boardContext.boardId}`);
+            if (saved) {
+                try {
+                    setMessages(JSON.parse(saved));
+                } catch (e) {
+                    console.error("Failed to parse local history");
+                }
+            }
+        }
+    }, [boardContext.boardId]);
+
+    // Format messages for LocalStorage
+    const saveToLocal = (msgs: Message[]) => {
+        if (boardContext.boardId) {
+            localStorage.setItem(`chat_history_${boardContext.boardId}`, JSON.stringify(msgs));
+        }
+    };
+
+    // Fetch initial history from DB
+    useEffect(() => {
+        if (isOpen && boardContext.boardId && supabase) {
+            console.log("Loading history for Board:", boardContext.boardId);
+            const loadHistory = async () => {
+                try {
+                    const history = await chatService.getMessages(supabase, boardContext.boardId);
+                    const formattedHistory: Message[] = history.map(msg => ({
+                        role: msg.role as any,
+                        content: msg.content
+                    }));
+
+                    // Only update if we got data (source of truth) and merge with local?
+                    // For now, if DB returns data, we treat it as truth + local backup
+                    if (formattedHistory.length > 0) {
+                        setMessages(formattedHistory);
+                        saveToLocal(formattedHistory);
+                    }
+                } catch (e: any) {
+                    console.error("Failed to load chat history:", {
+                        message: e.message,
+                        code: e.code,
+                        details: e.details,
+                        hint: e.hint
+                    });
+                }
+            };
+            loadHistory();
+        }
+    }, [isOpen, boardContext.boardId, supabase]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -68,14 +124,19 @@ export function AIChatPanel({ isOpen, onOpenChange, boardContext, onAction }: AI
         setIsLoading(true);
 
         try {
-            // Manual Fetch to match the User's Gemini Backend
+            // 1. Save User Message to Supabase
+            if (user && supabase) {
+                await chatService.saveMessage(supabase, boardContext.boardId, user.id, "user", content);
+            }
+
+            // 2. Fetch AI Response
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     message: content,
                     history: messages.map(m => ({
-                        role: m.role === "assistant" ? "model" : "user", // Gemini expects 'model'
+                        role: m.role === "assistant" ? "model" : "user",
                         content: m.content
                     })),
                     context: boardContext
@@ -88,9 +149,14 @@ export function AIChatPanel({ isOpen, onOpenChange, boardContext, onAction }: AI
                 throw new Error(data.error || "Failed to fetch AI response");
             }
 
-            // Add AI response
+            // 3. Add AI response
             const aiMsg: Message = { role: "assistant", content: data.text };
             setMessages(prev => [...prev, aiMsg]);
+
+            // 4. Save AI info to Supabase
+            if (user && supabase) {
+                await chatService.saveMessage(supabase, boardContext.boardId, user.id, "assistant", data.text);
+            }
 
             // Trigger action callback if the AI executed a tool
             if (data.actionExecuted) {
@@ -116,7 +182,6 @@ export function AIChatPanel({ isOpen, onOpenChange, boardContext, onAction }: AI
                 <SheetHeader className="p-6 border-b border-white/20 dark:border-gray-800/50 bg-white/50 dark:bg-black/20 backdrop-blur-md">
                     <div className="flex items-center gap-2">
                         <div className="p-2 rounded-lg bg-emerald-600/10 text-emerald-600">
-                            {/* Changed color to emerald to signify 'Gemini' or diff version */}
                             <Bot className="w-6 h-6" />
                         </div>
                         <div>

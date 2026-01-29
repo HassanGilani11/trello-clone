@@ -53,7 +53,7 @@ const Navbar = ({
           </Link>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <ThemeToggle />
-            <UserButton />
+            {isSignedIn && <UserButton />}
           </div>
         </div>
       </header>
@@ -119,7 +119,7 @@ const Navbar = ({
                 </Button>
               )}
               <ThemeToggle />
-              <UserButton />
+              {isSignedIn && <UserButton />}
             </div>
           </div>
           <div className="flex sm:hidden mt-4 justify-center items-center space-x-1 sm:space-x-2 min-w-0">

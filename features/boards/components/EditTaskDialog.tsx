@@ -175,7 +175,7 @@ export function EditTaskDialog({
                         />
                     </div>
 
-                    <div className="border-t pt-4">
+                    <div className="border-t pt-4 max-h-[200px] overflow-y-auto">
                         <ActivityLogList logs={logs} />
                     </div>
                 </div>
