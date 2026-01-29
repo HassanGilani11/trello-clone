@@ -1,35 +1,37 @@
-# Trello Clone - Ultra Modern Kanban Management
+# Trello Clone - Ultra Modern Kanban Management with AI Integration
 
 A premium, full-stack project management application inspired by Trello. Built with **Next.js 15**, **Supabase**, **Clerk**, and **Google Gemini AI**, this application offers a cutting-edge user experience with real-time updates, intelligent automation, and a stunning dark mode.
 
 ## 🚀 Key Features
 
-### 🤖 "Antigravity" AI Assistant
-- **Agentic Intelligence**: Powered by **Google Gemini 3 Flash / 2.0 Flash**, Antigravity understands your board context in real-time.
-- **Natural Language Actions**: Simply ask the AI to "Change priority of the top task to High" or "Move all done tasks to archive," and it executes the database changes for you.
-- **Smart Insights**: Get instant summaries, risk analysis, and bottleneck detection based on your current workload.
+### 🤖 "Antigravity" AI Assistant (V2)
+- **Agentic Intelligence**: Powered by **Google Gemini 2.5 Flash** with resilient fallbacks to **Gemini 2.0** and **Experimental Models**.
+- **Context-Aware Actions**: The AI understands your board structure, members, and deadlines. It can execute complex commands like "Move all high-priority tasks to Done" or "Assign all bugs to John."
+- **Persistent Memory**: Chat history is synced to Supabase and cached locally (`LocalStorage`) for an **instant-load experience**.
+- **Self-Healing**: Automatic model switching ensures uptime even when API rate limits are hit.
 
 ### 📋 Core Kanban Experience
 - **Interactive Boards**: Create, manage, and customize unlimited boards with smooth drag-and-drop animations (`@dnd-kit`).
 - **Advanced Task Management**: Full support for priorities, due dates, assignees, and rich descriptions.
+- **Activity Logs**: Detailed audit trail of every action taken on a task.
 - **Real-Time Updates**: Changes sync instantly across all clients.
 
 ### 🏢 Workspaces & Collaboration
 - **Multi-Workspace Architecture**: Organize boards into distinct Workspaces for different teams or projects.
-- **Role-Based Access Control (RBAC)**: Fine-grained permissions for **Worksapce Owners**, **Admins**, and **Members**.
+- **Role-Based Access Control (RBAC)**: Fine-grained permissions for **Workspace Owners**, **Admins**, and **Members**.
 - **Collaborative Comments**: Threaded task discussions with audit logs and history tracking.
 
 ### 🎨 Visuals & UX
-- **Full-Width Workspace**: Expansive dialog layout for focused task management.
+- **Responsive Design**: Mobile-optimized Navbar and layouts.
+- **Task Focus**: Modal-based task editing with optimized scrollable Views for long activity logs.
 - **Stunning Dark Mode**: Elegant, eye-friendly interface with automatic theme detection.
-- **Premium Aesthetics**: Built with Shadcn/UI and Lucide icons for a professional look and feel.
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
-- **AI Engine**: [Google Gemini AI SDK](https://ai.google.dev/)
+- **AI Engine**: [Google Gemini AI SDK](https://ai.google.dev/) (Multi-Model Fallback System)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components**: [Shadcn UI](https://ui.shadcn.com/)
@@ -79,14 +81,15 @@ A premium, full-stack project management application inspired by Trello. Built w
    ```
 
 4. **Initialize Database:**
-   Run the SQL scripts in `schema.sql` and `supabase/migrations/*.sql` in your Supabase SQL Editor.
+   Run the SQL scripts in `supabase/migrations/` in your Supabase SQL Editor.
+   **Critical:** Ensure to run `fix_chat_rls.sql` to enable Chat Permissions.
 
 5. **Run the development server:**
    ```bash
    npm run dev
    ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your app in action!
+Open [https://trello-clone-ruddy-nine.vercel.app/](https://trello-clone-ruddy-nine.vercel.app/) to see your app in action!
 
 ---
 
