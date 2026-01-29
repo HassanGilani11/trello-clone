@@ -501,8 +501,12 @@ export default function Board() {
                 c.tasks.map(t => ({
                   content: t.title,
                   column_title: c.title,
-                  id: t.id
+                  id: t.id,
+                  assignee: t.assignee,
+                  due_date: t.due_date,
+                  priority: t.priority
                 }))
+
               )
             }}
           />

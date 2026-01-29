@@ -28,6 +28,8 @@ models/nano-banana-pro-preview
 models/gemini-robotics-er-1.5-preview
 models/gemini-2.5-computer-use-preview-10-2025
 models/deep-research-pro-preview-12-2025
+models/embedding-001
+models/text-embedding-004
 models/gemini-embedding-001
 models/aqa
 models/imagen-4.0-generate-preview-06-06

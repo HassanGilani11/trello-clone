@@ -1,40 +1,35 @@
 # Trello Clone - Ultra Modern Kanban Management
 
-A premium, full-stack project management application inspired by Trello. Built with **Next.js 15**, **Supabase**, and **Clerk**, this application offers a cutting-edge user experience with real-time updates, advanced RBAC, and a stunning dark mode.
+A premium, full-stack project management application inspired by Trello. Built with **Next.js 15**, **Supabase**, **Clerk**, and **Google Gemini AI**, this application offers a cutting-edge user experience with real-time updates, intelligent automation, and a stunning dark mode.
 
 ## 🚀 Key Features
 
-### 📋 Core Kanban Experience
-- **Interactive Boards**: Create, manage, and customize unlimited boards.
-- **Advanced Task Management**: Add tasks with rich descriptions, priorities (Low, Medium, High), due dates, and assignees.
-- **Drag & Drop**: Seamlessly move tasks between columns and reorder columns with smooth, intuitive animations powered by `@dnd-kit`.
-- **Dynamic Columns**: Fully customizable workflow columns (To Do, In Progress, Done, etc.).
+### 🤖 "Antigravity" AI Assistant
+- **Agentic Intelligence**: Powered by **Google Gemini 3 Flash / 2.0 Flash**, Antigravity understands your board context in real-time.
+- **Natural Language Actions**: Simply ask the AI to "Change priority of the top task to High" or "Move all done tasks to archive," and it executes the database changes for you.
+- **Smart Insights**: Get instant summaries, risk analysis, and bottleneck detection based on your current workload.
 
-### 💬 Collaboration & Intelligence
-- **Collaborative Comments**: Threaded task discussions with full CRUD support.
-- **Member Management**: Invite other users to your board via email.
-- **Role-Based Access (RBAC)**: Fine-grained permissions for Board Owners, Admins, and Members.
-- **Activity Tracking**: Complete history of task changes, moves, and comments in a dedicated audit feed.
+### 📋 Core Kanban Experience
+- **Interactive Boards**: Create, manage, and customize unlimited boards with smooth drag-and-drop animations (`@dnd-kit`).
+- **Advanced Task Management**: Full support for priorities, due dates, assignees, and rich descriptions.
+- **Real-Time Updates**: Changes sync instantly across all clients.
+
+### 🏢 Workspaces & Collaboration
+- **Multi-Workspace Architecture**: Organize boards into distinct Workspaces for different teams or projects.
+- **Role-Based Access Control (RBAC)**: Fine-grained permissions for **Worksapce Owners**, **Admins**, and **Members**.
+- **Collaborative Comments**: Threaded task discussions with audit logs and history tracking.
 
 ### 🎨 Visuals & UX
-- **Full-Width Workspace**: Expansive dialog layout for focused task management and commenting.
+- **Full-Width Workspace**: Expansive dialog layout for focused task management.
 - **Stunning Dark Mode**: Elegant, eye-friendly interface with automatic theme detection.
 - **Premium Aesthetics**: Built with Shadcn/UI and Lucide icons for a professional look and feel.
-- **Responsive Design**: Flawless experience across Mobile, Tablet, and Desktop.
-
----
-
-## 🗺️ Roadmap (Upcoming Features)
-
-- [ ] **Workspaces**: Organize multiple boards into collaborative team workspace environments.
-- [ ] **AI Project Assistant**: An intelligent assistant capable of providing project insights, task summaries, and automated updates based on your board's data.
-- [ ] **Advanced Analytics**: Visualized performance metrics for teams and tasks.
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
+- **AI Engine**: [Google Gemini AI SDK](https://ai.google.dev/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components**: [Shadcn UI](https://ui.shadcn.com/)
@@ -51,6 +46,7 @@ A premium, full-stack project management application inspired by Trello. Built w
 - Node.js 18.x or later
 - A Supabase account
 - A Clerk project
+- A Google Cloud Project (for Gemini API)
 
 ### Local Installation
 
@@ -69,18 +65,21 @@ A premium, full-stack project management application inspired by Trello. Built w
    Create a `.env.local` file in the root:
    ```env
    # Clerk Auth
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
-   CLERK_SECRET_KEY=your_secret_key
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_key
+   CLERK_SECRET_KEY=your_secret
    NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
    NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 
    # Supabase
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_SUPABASE_URL=your_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+
+   # Google AI
+   GOOGLE_AI_API_KEY=your_gemini_api_key
    ```
 
 4. **Initialize Database:**
-   Run the SQL provided in `schema.sql` and ALL migration files in `supabase/migrations/` (including `comments.sql`) within your Supabase SQL Editor.
+   Run the SQL scripts in `schema.sql` and `supabase/migrations/*.sql` in your Supabase SQL Editor.
 
 5. **Run the development server:**
    ```bash

@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         ];
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-3-flash-preview",
+            model: "gemini-2.5-flash",
             tools: tools as any
         });
 
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       BOARD CONTEXT:
       - Board: ${context.boardName}
       - Columns: ${context.columns.map((c: any) => `${c.title} (ID: ${c.id})`).join(", ")}
-      - Tasks: ${context.tasks.map((t: any) => `${t.content} (ID: ${t.id}, Status: ${t.column_title})`).join("; ")}
+      - Tasks: ${context.tasks.map((t: any) => `${t.content} (ID: ${t.id}, Status: ${t.column_title}, Priority: ${t.priority || 'None'}, Assignee: ${t.assignee || 'Unassigned'}, Due: ${t.due_date || 'None'})`).join("; ")}
 
       --- 
 
@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
       1. Use **bolding** for task names, status, and critical terms.
       2. Professional, proactive executive tone.
       3. Avoid fluff or generic AI introductions.
+      4. **NEVER display UUIDs or raw IDs to the user.** Use the Title or Name instead. IDs are for your internal logic/tool calling only.
     `;
 
         const chatHistory = [
